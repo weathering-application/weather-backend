@@ -1,0 +1,7 @@
+services:
+  envoy:
+    image: envoyproxy/envoy:dev-057f7e0223d1985fd3b8f1adb1f6191454d963de
+    ports:
+      - "10000:10000"
+    volumes:
+      - ./configs/envoy.yaml:/etc/envoy/envoy.yaml
