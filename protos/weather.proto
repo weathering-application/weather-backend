@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package weather;
+
+option go_package = "../services";
+
+service WeatherService {
+  rpc GetRealtimeWeather (WeatherRequest) returns (WeatherResponse);
+  rpc GetForecastWeather (ForecastRequest) returns (WeatherResponse);
+}
+
+message WeatherRequest {
+  string query = 1;
+  string lang = 2;
+}
+
+message ForecastRequest {
+  string query = 1;
+  string days = 2;
+  string dt = 3;
+  string unixdt = 4;
+  string hour = 5;
+  string lang = 6;
+  string alerts = 7;
+  string aqi = 8;
+}
+
+message WeatherResponse {
+  string data = 1;
+  string error = 2;
+}
