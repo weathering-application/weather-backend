@@ -76,7 +76,6 @@ func (s *weatherServiceServer) GetForecastWeather(ctx context.Context, req *Fore
 	params.Add("key", s.apiKey)
 
 	requestURL := baseURL + "?" + params.Encode()
-	fmt.Println(requestURL)
 	resp, err := http.Get(requestURL)
 	if err != nil {
 		return nil, err
