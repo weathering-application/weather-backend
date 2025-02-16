@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	proto "github.com/weather-app/generated"
 	"github.com/weather-app/services"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -26,10 +27,10 @@ func startGRPCServer() {
 	}
 
 	weatherService := services.NewWeatherService(apiKey)
-	services.RegisterWeatherServiceServer(grpcServer, weatherService)
+	proto.RegisterWeatherServiceServer(grpcServer, weatherService)
 	reflection.Register(grpcServer)
 
-	listener, err := net.Listen("tcp", ":50051")
+	listener, err := net.Listen("tcp", "0.0.0.0:50051")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

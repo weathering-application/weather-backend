@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v5.27.2
-// source: weather.proto
+// source: protos/weather.proto
 
-package services
+package generated
 
 import (
 	context "context"
@@ -137,5 +137,5 @@ var WeatherService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "weather.proto",
+	Metadata: "protos/weather.proto",
 }

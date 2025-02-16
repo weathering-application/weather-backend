@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package weather;
 
-option go_package = "../services";
+option go_package = "../generated";
 
 service WeatherService {
   rpc GetRealtimeWeather (WeatherRequest) returns (WeatherResponse);

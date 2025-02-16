@@ -8,19 +8,21 @@ import (
 	"net/http"
 	"net/url"
 
+	proto "github.com/weather-app/generated"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 )
 
 type weatherServiceServer struct {
+	proto.UnimplementedWeatherServiceServer
 	apiKey string
 }
 
-func NewWeatherService(apiKey string) WeatherServiceServer {
+func NewWeatherService(apiKey string) proto.WeatherServiceServer {
 	return &weatherServiceServer{apiKey: apiKey}
 }
 
-func (s *weatherServiceServer) GetRealtimeWeather(ctx context.Context, req *WeatherRequest) (*WeatherResponse, error) {
+func (s *weatherServiceServer) GetRealtimeWeather(ctx context.Context, req *proto.WeatherRequest) (*proto.WeatherResponse, error) {
 	baseURL := "https://api.weatherapi.com/v1/current.json"
 	params := url.Values{}
 	params.Add("q", req.Query)
@@ -43,14 +45,14 @@ func (s *weatherServiceServer) GetRealtimeWeather(ctx context.Context, req *Weat
 		return nil, status.Errorf(codes.Internal, "failed to read response body: %v", err)
 	}
 
-	var weatherResp WeatherResponse
+	var weatherResp proto.WeatherResponse
 	if err := json.Unmarshal(body, &weatherResp); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to unmarshal response: %v", err)
 	}
 	return &weatherResp, nil
 }
 
-func (s *weatherServiceServer) GetForecastWeather(ctx context.Context, req *ForecastRequest) (*ForecastResponse, error) {
+func (s *weatherServiceServer) GetForecastWeather(ctx context.Context, req *proto.ForecastRequest) (*proto.ForecastResponse, error) {
 	baseURL := "https://api.weatherapi.com/v1/forecast.json"
 	params := url.Values{}
 	params.Add("q", req.Query)
@@ -82,7 +84,7 @@ func (s *weatherServiceServer) GetForecastWeather(ctx context.Context, req *Fore
 	}
 	defer resp.Body.Close()
 
-	var forecastResp ForecastResponse
+	var forecastResp proto.ForecastResponse
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -92,5 +94,3 @@ func (s *weatherServiceServer) GetForecastWeather(ctx context.Context, req *Fore
 	}
 	return &forecastResp, nil
 }
-
-func (s *weatherServiceServer) mustEmbedUnimplementedWeatherServiceServer() {}

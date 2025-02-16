@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/weather-app/services"
+	proto "github.com/weather-app/generated"
 )
 
 type WeatherHandler interface {
@@ -11,10 +11,10 @@ type WeatherHandler interface {
 }
 
 type weatherHandler struct {
-	service services.WeatherServiceServer
+	service proto.WeatherServiceServer
 }
 
-func NewWeatherHandler(service services.WeatherServiceServer) WeatherHandler {
+func NewWeatherHandler(service proto.WeatherServiceServer) WeatherHandler {
 	return &weatherHandler{service: service}
 }
 
@@ -27,7 +27,7 @@ func (h *weatherHandler) GetRealtimeWeather(c *gin.Context) {
 
 	lang := c.DefaultQuery("lang", "en")
 
-	weatherRequest := &services.WeatherRequest{
+	weatherRequest := &proto.WeatherRequest{
 		Query: q,
 		Lang:  lang,
 	}
@@ -60,7 +60,7 @@ func (h *weatherHandler) GetForecastWeather(c *gin.Context) {
 	alerts := c.DefaultQuery("alerts", "")
 	aqi := c.DefaultQuery("aqi", "")
 
-	weatherRequest := &services.ForecastRequest{
+	weatherRequest := &proto.ForecastRequest{
 		Query:  q,
 		Days:   days,
 		Dt:     dt,
