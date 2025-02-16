@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type WeatherServiceClient interface {
 	GetRealtimeWeather(ctx context.Context, in *WeatherRequest, opts ...grpc.CallOption) (*WeatherResponse, error)
-	GetForecastWeather(ctx context.Context, in *ForecastRequest, opts ...grpc.CallOption) (*WeatherResponse, error)
+	GetForecastWeather(ctx context.Context, in *ForecastRequest, opts ...grpc.CallOption) (*ForecastResponse, error)
 }
 
 type weatherServiceClient struct {
@@ -43,8 +43,8 @@ func (c *weatherServiceClient) GetRealtimeWeather(ctx context.Context, in *Weath
 	return out, nil
 }
 
-func (c *weatherServiceClient) GetForecastWeather(ctx context.Context, in *ForecastRequest, opts ...grpc.CallOption) (*WeatherResponse, error) {
-	out := new(WeatherResponse)
+func (c *weatherServiceClient) GetForecastWeather(ctx context.Context, in *ForecastRequest, opts ...grpc.CallOption) (*ForecastResponse, error) {
+	out := new(ForecastResponse)
 	err := c.cc.Invoke(ctx, "/weather.WeatherService/GetForecastWeather", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (c *weatherServiceClient) GetForecastWeather(ctx context.Context, in *Forec
 // for forward compatibility
 type WeatherServiceServer interface {
 	GetRealtimeWeather(context.Context, *WeatherRequest) (*WeatherResponse, error)
-	GetForecastWeather(context.Context, *ForecastRequest) (*WeatherResponse, error)
+	GetForecastWeather(context.Context, *ForecastRequest) (*ForecastResponse, error)
 	mustEmbedUnimplementedWeatherServiceServer()
 }
 
@@ -68,7 +68,7 @@ type UnimplementedWeatherServiceServer struct {
 func (UnimplementedWeatherServiceServer) GetRealtimeWeather(context.Context, *WeatherRequest) (*WeatherResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRealtimeWeather not implemented")
 }
-func (UnimplementedWeatherServiceServer) GetForecastWeather(context.Context, *ForecastRequest) (*WeatherResponse, error) {
+func (UnimplementedWeatherServiceServer) GetForecastWeather(context.Context, *ForecastRequest) (*ForecastResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetForecastWeather not implemented")
 }
 func (UnimplementedWeatherServiceServer) mustEmbedUnimplementedWeatherServiceServer() {}

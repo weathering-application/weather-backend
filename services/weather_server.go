@@ -7,43 +7,50 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 )
 
-type weatherService struct {
+type weatherServiceServer struct {
 	apiKey string
 }
 
 func NewWeatherService(apiKey string) WeatherServiceServer {
-	return &weatherService{apiKey: apiKey}
+	return &weatherServiceServer{apiKey: apiKey}
 }
 
-func (s *weatherService) GetRealtimeWeather(ctx context.Context, req *WeatherRequest) (*WeatherResponse, error) {
+func (s *weatherServiceServer) GetRealtimeWeather(ctx context.Context, req *WeatherRequest) (*WeatherResponse, error) {
 	baseURL := "https://api.weatherapi.com/v1/current.json"
 	params := url.Values{}
 	params.Add("q", req.Query)
 	params.Add("lang", req.Lang)
 	params.Add("key", s.apiKey)
 
-	resp, err := http.Get(baseURL + "?" + params.Encode())
+	requestURL := baseURL + "?" + params.Encode()
+	resp, err := http.Get(requestURL)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "failed to make request: %v", err)
 	}
 	defer resp.Body.Close()
 
-	var weatherResp WeatherResponse
+	if resp.StatusCode != http.StatusOK {
+		return nil, status.Errorf(codes.Internal, "unexpected status code: %d", resp.StatusCode)
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "failed to read response body: %v", err)
 	}
 
+	var weatherResp WeatherResponse
 	if err := json.Unmarshal(body, &weatherResp); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to unmarshal response: %v", err)
 	}
-
 	return &weatherResp, nil
 }
 
-func (s *weatherService) GetForecastWeather(ctx context.Context, req *ForecastRequest) (*WeatherResponse, error) {
+func (s *weatherServiceServer) GetForecastWeather(ctx context.Context, req *ForecastRequest) (*ForecastResponse, error) {
 	baseURL := "https://api.weatherapi.com/v1/forecast.json"
 	params := url.Values{}
 	params.Add("q", req.Query)
@@ -68,22 +75,23 @@ func (s *weatherService) GetForecastWeather(ctx context.Context, req *ForecastRe
 	}
 	params.Add("key", s.apiKey)
 
-	resp, err := http.Get(baseURL + "?" + params.Encode())
+	requestURL := baseURL + "?" + params.Encode()
+	fmt.Println(requestURL)
+	resp, err := http.Get(requestURL)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	var weatherResp WeatherResponse
+	var forecastResp ForecastResponse
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-
-	if err := json.Unmarshal(body, &weatherResp); err != nil {
+	if err := json.Unmarshal(body, &forecastResp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
 	}
-	return &weatherResp, nil
+	return &forecastResp, nil
 }
 
-func (s *weatherService) mustEmbedUnimplementedWeatherServiceServer() {}
+func (s *weatherServiceServer) mustEmbedUnimplementedWeatherServiceServer() {}

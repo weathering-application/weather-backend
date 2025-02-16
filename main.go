@@ -5,14 +5,26 @@ import (
 	"net"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/weather-app/services"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
+func loadEnv() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+}
+
 func startGRPCServer() {
 	grpcServer := grpc.NewServer()
 	apiKey := os.Getenv("WEATHER_API_KEY")
+	if apiKey == "" {
+		log.Fatalf("WEATHER_API_KEY is not set in the environment variables")
+	}
+
 	weatherService := services.NewWeatherService(apiKey)
 	services.RegisterWeatherServiceServer(grpcServer, weatherService)
 	reflection.Register(grpcServer)
@@ -28,23 +40,7 @@ func startGRPCServer() {
 	}
 }
 
-// func setupHandlers() handlers.WeatherHandler {
-// 	apiKey := os.Getenv("WEATHER_API_KEY")
-// 	weatherService := services.NewWeatherService(apiKey)
-// 	return handlers.NewWeatherHandler(weatherService)
-// }
-
-// func startHTTPServer() {
-// 	router := gin.Default()
-// 	weatherHandler := setupHandlers()
-// 	router.GET("/weathers/current", weatherHandler.GetRealtimeWeather)
-// 	router.GET("/weathers/forecast", weatherHandler.GetForecastWeather)
-// 	if err := router.Run(":8080"); err != nil {
-// 		log.Fatalf("failed to run HTTP server: %v", err)
-// 	}
-// }
-
 func main() {
+	loadEnv()
 	startGRPCServer()
-	// startHTTPServer()
 }
