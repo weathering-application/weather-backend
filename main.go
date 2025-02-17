@@ -30,7 +30,7 @@ func startGRPCServer() {
 	proto.RegisterWeatherServiceServer(grpcServer, weatherService)
 	reflection.Register(grpcServer)
 
-	listener, err := net.Listen("tcp", "0.0.0.0:50051")
+	listener, err := net.Listen("tcp", "[::]:50051")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
