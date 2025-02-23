@@ -7,7 +7,7 @@ import (
 
 	"github.com/joho/godotenv"
 	proto "github.com/weather-app/generated"
-	"github.com/weather-app/services"
+	service "github.com/weather-app/service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -26,7 +26,7 @@ func startGRPCServer() {
 		log.Fatalf("WEATHER_API_KEY is not set in the environment variables")
 	}
 
-	weatherService := services.NewWeatherService(apiKey)
+	weatherService := service.NewWeatherService(apiKey)
 	proto.RegisterWeatherServiceServer(grpcServer, weatherService)
 	reflection.Register(grpcServer)
 

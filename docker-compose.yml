@@ -10,5 +10,6 @@ services:
     container_name: envoy-proxy
     ports:
       - "8080:8080"
+      - "9901:9901"
     volumes:
       - ./configs/envoy.yaml:/etc/envoy/envoy.yaml

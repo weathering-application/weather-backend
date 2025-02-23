@@ -5,8 +5,8 @@ package weather;
 option go_package = "../generated";
 
 service WeatherService {
-  rpc GetRealtimeWeather (WeatherRequest) returns (WeatherResponse);
-  rpc GetForecastWeather (ForecastRequest) returns (ForecastResponse);
+  rpc GetRealtimeWeather (WeatherRequest) returns (stream WeatherResponse);
+  rpc GetForecastWeather (ForecastRequest) returns (stream ForecastResponse);
 }
 
 message WeatherRequest {
