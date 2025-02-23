@@ -1,10 +1,4 @@
 services:
-  # app:
-  #   build: .
-  #   container_name: golang-app
-  #   depends_on:
-  #     - envoy
-
   envoy:
     image: envoyproxy/envoy-dev:latest
     container_name: envoy-proxy
@@ -12,4 +6,4 @@ services:
       - "8080:8080"
       - "9901:9901"
     volumes:
-      - ./configs/envoy.yaml:/etc/envoy/envoy.yaml
+      - ./config/envoy.yaml:/etc/envoy/envoy.yaml
