@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v5.27.2
-// source: protos/weather.proto
+// source: proto/weather.proto
 
 package generated
 
@@ -22,8 +22,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type WeatherServiceClient interface {
-	GetRealtimeWeather(ctx context.Context, in *WeatherRequest, opts ...grpc.CallOption) (WeatherService_GetRealtimeWeatherClient, error)
-	GetForecastWeather(ctx context.Context, in *ForecastRequest, opts ...grpc.CallOption) (WeatherService_GetForecastWeatherClient, error)
+	GetRealtimeWeather(ctx context.Context, in *RealtimeWeatherRequest, opts ...grpc.CallOption) (WeatherService_GetRealtimeWeatherClient, error)
+	GetForecastWeather(ctx context.Context, in *ForecastRequest, opts ...grpc.CallOption) (*ForecastResponse, error)
 }
 
 type weatherServiceClient struct {
@@ -34,7 +34,7 @@ func NewWeatherServiceClient(cc grpc.ClientConnInterface) WeatherServiceClient {
 	return &weatherServiceClient{cc}
 }
 
-func (c *weatherServiceClient) GetRealtimeWeather(ctx context.Context, in *WeatherRequest, opts ...grpc.CallOption) (WeatherService_GetRealtimeWeatherClient, error) {
+func (c *weatherServiceClient) GetRealtimeWeather(ctx context.Context, in *RealtimeWeatherRequest, opts ...grpc.CallOption) (WeatherService_GetRealtimeWeatherClient, error) {
 	stream, err := c.cc.NewStream(ctx, &WeatherService_ServiceDesc.Streams[0], "/weather.WeatherService/GetRealtimeWeather", opts...)
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (c *weatherServiceClient) GetRealtimeWeather(ctx context.Context, in *Weath
 }
 
 type WeatherService_GetRealtimeWeatherClient interface {
-	Recv() (*WeatherResponse, error)
+	Recv() (*RealtimeWeatherResponse, error)
 	grpc.ClientStream
 }
 
@@ -58,52 +58,29 @@ type weatherServiceGetRealtimeWeatherClient struct {
 	grpc.ClientStream
 }
 
-func (x *weatherServiceGetRealtimeWeatherClient) Recv() (*WeatherResponse, error) {
-	m := new(WeatherResponse)
+func (x *weatherServiceGetRealtimeWeatherClient) Recv() (*RealtimeWeatherResponse, error) {
+	m := new(RealtimeWeatherResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *weatherServiceClient) GetForecastWeather(ctx context.Context, in *ForecastRequest, opts ...grpc.CallOption) (WeatherService_GetForecastWeatherClient, error) {
-	stream, err := c.cc.NewStream(ctx, &WeatherService_ServiceDesc.Streams[1], "/weather.WeatherService/GetForecastWeather", opts...)
+func (c *weatherServiceClient) GetForecastWeather(ctx context.Context, in *ForecastRequest, opts ...grpc.CallOption) (*ForecastResponse, error) {
+	out := new(ForecastResponse)
+	err := c.cc.Invoke(ctx, "/weather.WeatherService/GetForecastWeather", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &weatherServiceGetForecastWeatherClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type WeatherService_GetForecastWeatherClient interface {
-	Recv() (*ForecastResponse, error)
-	grpc.ClientStream
-}
-
-type weatherServiceGetForecastWeatherClient struct {
-	grpc.ClientStream
-}
-
-func (x *weatherServiceGetForecastWeatherClient) Recv() (*ForecastResponse, error) {
-	m := new(ForecastResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 // WeatherServiceServer is the server API for WeatherService service.
 // All implementations must embed UnimplementedWeatherServiceServer
 // for forward compatibility
 type WeatherServiceServer interface {
-	GetRealtimeWeather(*WeatherRequest, WeatherService_GetRealtimeWeatherServer) error
-	GetForecastWeather(*ForecastRequest, WeatherService_GetForecastWeatherServer) error
+	GetRealtimeWeather(*RealtimeWeatherRequest, WeatherService_GetRealtimeWeatherServer) error
+	GetForecastWeather(context.Context, *ForecastRequest) (*ForecastResponse, error)
 	mustEmbedUnimplementedWeatherServiceServer()
 }
 
@@ -111,11 +88,11 @@ type WeatherServiceServer interface {
 type UnimplementedWeatherServiceServer struct {
 }
 
-func (UnimplementedWeatherServiceServer) GetRealtimeWeather(*WeatherRequest, WeatherService_GetRealtimeWeatherServer) error {
+func (UnimplementedWeatherServiceServer) GetRealtimeWeather(*RealtimeWeatherRequest, WeatherService_GetRealtimeWeatherServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetRealtimeWeather not implemented")
 }
-func (UnimplementedWeatherServiceServer) GetForecastWeather(*ForecastRequest, WeatherService_GetForecastWeatherServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetForecastWeather not implemented")
+func (UnimplementedWeatherServiceServer) GetForecastWeather(context.Context, *ForecastRequest) (*ForecastResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetForecastWeather not implemented")
 }
 func (UnimplementedWeatherServiceServer) mustEmbedUnimplementedWeatherServiceServer() {}
 
@@ -131,7 +108,7 @@ func RegisterWeatherServiceServer(s grpc.ServiceRegistrar, srv WeatherServiceSer
 }
 
 func _WeatherService_GetRealtimeWeather_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(WeatherRequest)
+	m := new(RealtimeWeatherRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
@@ -139,7 +116,7 @@ func _WeatherService_GetRealtimeWeather_Handler(srv interface{}, stream grpc.Ser
 }
 
 type WeatherService_GetRealtimeWeatherServer interface {
-	Send(*WeatherResponse) error
+	Send(*RealtimeWeatherResponse) error
 	grpc.ServerStream
 }
 
@@ -147,29 +124,26 @@ type weatherServiceGetRealtimeWeatherServer struct {
 	grpc.ServerStream
 }
 
-func (x *weatherServiceGetRealtimeWeatherServer) Send(m *WeatherResponse) error {
+func (x *weatherServiceGetRealtimeWeatherServer) Send(m *RealtimeWeatherResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _WeatherService_GetForecastWeather_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ForecastRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _WeatherService_GetForecastWeather_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ForecastRequest)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(WeatherServiceServer).GetForecastWeather(m, &weatherServiceGetForecastWeatherServer{stream})
-}
-
-type WeatherService_GetForecastWeatherServer interface {
-	Send(*ForecastResponse) error
-	grpc.ServerStream
-}
-
-type weatherServiceGetForecastWeatherServer struct {
-	grpc.ServerStream
-}
-
-func (x *weatherServiceGetForecastWeatherServer) Send(m *ForecastResponse) error {
-	return x.ServerStream.SendMsg(m)
+	if interceptor == nil {
+		return srv.(WeatherServiceServer).GetForecastWeather(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/weather.WeatherService/GetForecastWeather",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WeatherServiceServer).GetForecastWeather(ctx, req.(*ForecastRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 // WeatherService_ServiceDesc is the grpc.ServiceDesc for WeatherService service.
@@ -178,18 +152,18 @@ func (x *weatherServiceGetForecastWeatherServer) Send(m *ForecastResponse) error
 var WeatherService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "weather.WeatherService",
 	HandlerType: (*WeatherServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetForecastWeather",
+			Handler:    _WeatherService_GetForecastWeather_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "GetRealtimeWeather",
 			Handler:       _WeatherService_GetRealtimeWeather_Handler,
 			ServerStreams: true,
 		},
-		{
-			StreamName:    "GetForecastWeather",
-			Handler:       _WeatherService_GetForecastWeather_Handler,
-			ServerStreams: true,
-		},
 	},
-	Metadata: "protos/weather.proto",
+	Metadata: "proto/weather.proto",
 }

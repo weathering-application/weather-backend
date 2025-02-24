@@ -5,11 +5,11 @@ package weather;
 option go_package = "../generated";
 
 service WeatherService {
-  rpc GetRealtimeWeather (WeatherRequest) returns (stream WeatherResponse);
-  rpc GetForecastWeather (ForecastRequest) returns (stream ForecastResponse);
+  rpc GetRealtimeWeather (RealtimeWeatherRequest) returns (stream RealtimeWeatherResponse);
+  rpc GetForecastWeather (ForecastRequest) returns (ForecastResponse);
 }
 
-message WeatherRequest {
+message RealtimeWeatherRequest {
   string query = 1;
   string lang = 2;
 }
@@ -63,7 +63,7 @@ message CurrentWeather {
   double gust_kph = 29;
 }
 
-message WeatherResponse {
+message RealtimeWeatherResponse {
   Location location = 1;
   CurrentWeather current = 2;
 }
