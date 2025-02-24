@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -31,10 +30,7 @@ func (s *weatherServiceServer) GetRealtimeWeather(req *proto.RealtimeWeatherRequ
 	params.Add("key", s.apiKey)
 
 	requestURL := baseURL + "?" + params.Encode()
-
 	for {
-		fmt.Println("GetRealtimeWeather")
-
 		resp, err := http.Get(requestURL)
 		if err != nil {
 			return status.Errorf(codes.Internal, "failed to make request: %v", err)
@@ -57,7 +53,7 @@ func (s *weatherServiceServer) GetRealtimeWeather(req *proto.RealtimeWeatherRequ
 		if err := stream.Send(&weatherResp); err != nil {
 			return err
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 	}
 }
 
