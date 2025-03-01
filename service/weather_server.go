@@ -5,85 +5,105 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"net/url"
 	"time"
 
 	proto "github.com/weather-app/generated"
+	"github.com/weather-app/monad"
+	utils "github.com/weather-app/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type weatherServiceServer struct {
 	proto.UnimplementedWeatherServiceServer
-	apiKey string
+	apiKey       string
+	redisService *RedisService
 }
 
-func NewWeatherService(apiKey string) proto.WeatherServiceServer {
-	return &weatherServiceServer{apiKey: apiKey}
+func NewWeatherService(apiKey string, redisService *RedisService) proto.WeatherServiceServer {
+	return &weatherServiceServer{
+		apiKey:       apiKey,
+		redisService: redisService,
+	}
 }
 
-func (s *weatherServiceServer) GetRealtimeWeather(req *proto.RealtimeWeatherRequest, stream proto.WeatherService_GetRealtimeWeatherServer) error {
-	baseURL := "https://api.weatherapi.com/v1/current.json"
-	params := url.Values{}
-	params.Add("q", req.Query)
-	params.Add("lang", req.Lang)
-	params.Add("key", s.apiKey)
-
-	requestURL := baseURL + "?" + params.Encode()
-	for {
-		resp, err := http.Get(requestURL)
+// Pure function to fetch weather data from the API
+func fetchWeatherData[T any](url string) monad.IO[T] {
+	return monad.IO[T]{Run: func() (T, error) {
+		var target T
+		resp, err := http.Get(url)
 		if err != nil {
-			return status.Errorf(codes.Internal, "failed to make request: %v", err)
+			return target, status.Errorf(codes.Internal, "failed to make request: %v", err)
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			return status.Errorf(codes.Internal, "unexpected status code: %d", resp.StatusCode)
+			return target, status.Errorf(codes.Internal, "unexpected status code: %d", resp.StatusCode)
 		}
 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return status.Errorf(codes.Internal, "failed to read response body: %v", err)
+			return target, status.Errorf(codes.Internal, "failed to read response body: %v", err)
 		}
 
-		var weatherResp proto.RealtimeWeatherResponse
-		if err := json.Unmarshal(body, &weatherResp); err != nil {
-			return status.Errorf(codes.Internal, "failed to unmarshal response: %v", err)
+		if err := json.Unmarshal(body, &target); err != nil {
+			return target, status.Errorf(codes.Internal, "failed to unmarshal response: %v", err)
 		}
+
+		return target, nil
+	}}
+}
+
+func (s *weatherServiceServer) GetRealtimeWeather(req *proto.RealtimeWeatherRequest, stream proto.WeatherService_GetRealtimeWeatherServer) error {
+	baseURL := "https://api.weatherapi.com/v1/current.json"
+	params := map[string]string{
+		"q":    req.Query,
+		"lang": req.Lang,
+	}
+
+	for {
+		url := utils.BuildRequestURL(baseURL, params, s.apiKey)
+
+		// Wrap in IO Monad
+		ioWeather := fetchWeatherData[proto.RealtimeWeatherResponse](url)
+
+		// Execute and handle errors
+		weatherResp, err := ioWeather.Run()
+		if err != nil {
+			return err
+		}
+
 		if err := stream.Send(&weatherResp); err != nil {
 			return err
 		}
+
 		time.Sleep(2 * time.Second)
 	}
 }
 
 func (s *weatherServiceServer) GetForecastWeather(ctx context.Context, req *proto.ForecastRequest) (*proto.ForecastResponse, error) {
 	baseURL := "https://api.weatherapi.com/v1/forecast.json"
-	params := url.Values{}
-	params.Add("q", req.GetQuery())
-	params.Add("days", req.GetDays())
-	params.Add("key", s.apiKey)
+	params := map[string]string{
+		"q":      req.GetQuery(),
+		"days":   req.GetDays(),
+		"dt":     req.GetDt(),
+		"unixdt": req.GetUnixdt(),
+		"hour":   req.GetHour(),
+		"lang":   req.GetLang(),
+		"alerts": req.GetAlerts(),
+		"aqi":    req.GetAqi(),
+		"tp":     req.GetTp(),
+	}
 
-	requestURL := baseURL + "?" + params.Encode()
+	url := utils.BuildRequestURL(baseURL, params, s.apiKey)
 
-	resp, err := http.Get(requestURL)
+	// Wrap in IO Monad
+	ioForecast := fetchWeatherData[proto.ForecastResponse](url)
+
+	// Execute
+	forecastResp, err := ioForecast.Run()
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to make request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, status.Errorf(codes.Internal, "unexpected status code: %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to read response body: %v", err)
-	}
-
-	var forecastResp proto.ForecastResponse
-	if err := json.Unmarshal(body, &forecastResp); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to unmarshal response: %v", err)
+		return nil, err
 	}
 
 	return &forecastResp, nil

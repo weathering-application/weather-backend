@@ -7,3 +7,15 @@ services:
       - "9901:9901"
     volumes:
       - ./config/envoy.yaml:/etc/envoy/envoy.yaml
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+
+volumes:
+  redis_data:
