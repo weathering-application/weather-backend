@@ -18,10 +18,10 @@ func setupGRPCServer(weatherAPIKey string) monad.Result[*grpc.Server] {
 	grpcServer := grpc.NewServer()
 
 	// Initialize Redis service
-	redisService := service.NewRedisService(db.ConnectRedis("localhost:6379", "", 0))
+	cacheService := service.NewCacheService(db.ConnectRedis("localhost:6379", "", 0))
 
 	// Initialize weather service
-	weatherService := service.NewWeatherService(weatherAPIKey, redisService)
+	weatherService := service.NewWeatherService(weatherAPIKey, cacheService)
 
 	// Register services
 	proto.RegisterWeatherServiceServer(grpcServer, weatherService)
