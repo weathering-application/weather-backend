@@ -18,7 +18,7 @@ func setupGRPCServer(weatherAPIKey string) monad.Result[*grpc.Server] {
 	grpcServer := grpc.NewServer()
 
 	// Initialize Redis service
-	cacheService := service.NewCacheService(db.ConnectRedis("localhost:6379", "", 0))
+	cacheService := service.NewCacheService(db.ConnectRedis("redis.weather.svc.cluster.local", "", 0))
 
 	// Initialize weather service
 	weatherService := service.NewWeatherService(weatherAPIKey, cacheService)

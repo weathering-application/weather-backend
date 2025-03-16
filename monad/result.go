@@ -1,6 +1,6 @@
 package monad
 
-type Result[T any] struct {
+type Result[T any] struct { // Either Monad
 	Value T
 	Err   error
 }
