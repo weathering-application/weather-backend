@@ -71,6 +71,15 @@ func (s *weatherServiceServer) GetForecastWeather(ctx context.Context, req *gene
 	forecastQueryParams := buildForecastQueryParams(req)
 	url := util.BuildRequestURLWithAPIKey(baseURL, forecastQueryParams, s.apiKey)
 
+	// cachedResp, err := GetCachedData[*generated.ForecastResponse](ctx, s.cacheService, url).
+	// 	Map(func(resp *generated.ForecastResponse) *generated.ForecastResponse {
+	// 		fmt.Printf("Fetched Forecast Response: %+v\n", resp)
+	// 		return resp
+	// 	}).Run()
+	// if err == nil {
+	// 	return cachedResp, nil
+	// }
+
 	cachedResp, err := GetCachedData[*generated.ForecastResponse](ctx, s.cacheService, url).Run()
 	if err == nil {
 		return cachedResp, nil

@@ -1,6 +1,6 @@
 package monad
 
-type Result[T any] struct { // Either Monad
+type Result[T any] struct {
 	Value T
 	Err   error
 }
@@ -15,7 +15,7 @@ func Err[T any](err error) Result[T] {
 
 func (r Result[T]) Bind(fn func(T) Result[T]) Result[T] {
 	if r.Err != nil {
-		return r // if error, propagate it
+		return r
 	}
-	return fn(r.Value) // if no error, apply the function
+	return fn(r.Value)
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// Impure
 func LoadEnv() {
 	err := godotenv.Load()
 	if err != nil {
@@ -14,6 +15,7 @@ func LoadEnv() {
 	}
 }
 
+// Impure
 func GetWeatherAPIKey() string {
 	apiKey := os.Getenv("WEATHER_API_KEY")
 	if apiKey == "" {
